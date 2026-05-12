@@ -123,6 +123,17 @@ None — all functionality wired to real implementations.
 
 None — all threat model dispositions were accepted as planned.
 
+## Self-Check: PASSED
+
+All files exist, all commits verified, all acceptance criteria met:
+- go build ./... compiles successfully
+- No abandoned dependencies in go.mod (jwt-go, satori, gocron, gorilla/websocket all removed)
+- New dependencies present (google/uuid, robfig/cron/v3, nhooyr.io/websocket)
+- No source references to abandoned libraries
+- db/base.go uses uuid.New().String()
+- main.go uses cron.New() and c.AddFunc()
+- controllers/websockets.go uses websocket.Accept() and wsjson.Read/Write()
+
 ---
 *Phase: 01-dependency-upgrades*
 *Completed: 2026-05-12*
