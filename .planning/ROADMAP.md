@@ -13,7 +13,7 @@ Stabilize the existing Go podcast manager: upgrade the dependency foundation, fi
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Dependency Upgrades** - Upgrade Go to 1.24+, replace abandoned libs, update Docker
-- [ ] **Phase 2: Test Framework & Code Quality** - Set up test harness, fix trivial code bugs
+- [x] **Phase 2: Test Framework & Code Quality** - Set up test harness, fix trivial code bugs
 - [ ] **Phase 3: Correctness & Concurrency Fixes** - Fix download batching, date parsing, DB init, WebSocket races
 - [ ] **Phase 4: Error Handling Modernization** - Structured logging, error propagation, remove panics
 
@@ -42,12 +42,16 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Depends on**: Phase 1
 **Requirements**: TEST-01, BUG-01, BUG-02, BUG-03, TEST-02, TEST-03
 **Success Criteria** (what must be TRUE):
-  1. `go test ./...` runs successfully with a test harness in place
-  2. Podcast delete handler has a single correctly-named function (no duplicate typo handler)
-  3. `removeStartingSlash` template function removes leading slashes instead of adding them
-  4. No debug `fmt.Println` remains in `main.go` for `removeStartingSlash`
-  5. Service and DB layer tests pass for core podcast CRUD operations
-**Plans**: 4 (01-01 through 01-04)
+  - [x] `go test ./...` runs successfully with a test harness in place
+  - [x] Podcast delete handler has a single correctly-named function (no duplicate typo handler)
+  - [x] `removeStartingSlash` template function removes leading slashes instead of adding them
+  - [x] No debug `fmt.Println` remains in `main.go` for `removeStartingSlash`
+  - [x] Service and DB layer tests pass for core podcast CRUD operations
+**Plans**: 4 plans (all complete)
+- [x] 02-01-PLAN.md — Test harness setup (db_test.go, service_test.go, main_test.go)
+- [x] 02-02-PLAN.md — Bug fix: remove typo handler
+- [x] 02-03-PLAN.md — Bug fix: fix removeStartingSlash + remove debug print
+- [x] 02-04-PLAN.md — DB + Service layer CRUD tests
 
 ### Phase 3: Correctness & Concurrency Fixes
 **Goal**: Download scheduling works reliably, date parsing handles real RSS feeds, crashes are caught early
