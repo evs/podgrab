@@ -30,8 +30,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Docker container builds and runs with updated Dockerfile and docker-compose.yml
   4. PodcastIndex API calls authenticate via environment variables (`PODCASTINDEX_KEY`, `PODCASTINDEX_SECRET`), not hardcoded credentials
   5. No deprecated `io/ioutil` calls remain in the codebase
-**Plans**: TBD
-
+**Plans**: 4 plans
+- [ ] 01-01-PLAN.md — Go 1.24 upgrade + ioutil replacement
+- [ ] 01-02-PLAN.md — Remove jwt-go + swap abandoned libraries (uuid, cron, websocket)
+- [ ] 01-03-PLAN.md — Upgrade Gin + remaining deps + GORM v1.26 migration
+- [ ] 01-04-PLAN.md — Extract credentials + update Docker config
+	
 ### Phase 2: Test Framework & Code Quality
 **Goal**: Tests can be written and run; trivial code bugs are fixed and verified
 **Mode**: mvp
@@ -78,7 +82,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Dependency Upgrades | 0/? | Not started | - |
+| 1. Dependency Upgrades | 0/4 | Not started | - |
 | 2. Test Framework & Code Quality | 0/? | Not started | - |
 | 3. Correctness & Concurrency Fixes | 0/? | Not started | - |
 | 4. Error Handling Modernization | 0/? | Not started | - |
