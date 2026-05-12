@@ -12,7 +12,7 @@ Stabilize the existing Go podcast manager: upgrade the dependency foundation, fi
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Dependency Upgrades** - Upgrade Go to 1.24+, replace abandoned libs, update Docker
+- [x] **Phase 1: Dependency Upgrades** - Upgrade Go to 1.24+, replace abandoned libs, update Docker
 - [ ] **Phase 2: Test Framework & Code Quality** - Set up test harness, fix trivial code bugs
 - [ ] **Phase 3: Correctness & Concurrency Fixes** - Fix download batching, date parsing, DB init, WebSocket races
 - [ ] **Phase 4: Error Handling Modernization** - Structured logging, error propagation, remove panics
@@ -82,7 +82,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Dependency Upgrades | 4/4 | In Progress | - |
+| 1. Dependency Upgrades | 4/4 | ✓ Complete | 2026-05-12 |
 | 2. Test Framework & Code Quality | 0/? | Not started | - |
 | 3. Correctness & Concurrency Fixes | 0/? | Not started | - |
 | 4. Error Handling Modernization | 0/? | Not started | - |
