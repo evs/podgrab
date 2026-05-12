@@ -11,9 +11,9 @@ Requirements for stabilization milestone. Each maps to roadmap phases.
 
 - [x] **DEPS-01**: Go version upgraded from 1.15 to 1.24+ (go.mod updated, code compiles and runs)
 - [ ] **DEPS-02**: GORM upgraded from v1.20.2 to v1.26+ (migration accounts for silent runtime behavior changes)
-- [ ] **DEPS-03**: `satori/go.uuid` replaced with `google/uuid` (latest stable)
-- [ ] **DEPS-04**: `dgrijalva/jwt-go` replaced with `golang-jwt/jwt/v5` (or removed if unused)
-- [ ] **DEPS-05**: `jasonlvhit/gocron` replaced with `robfig/cron/v3`
+- [x] **DEPS-03**: `satori/go.uuid` replaced with `google/uuid` (latest stable)
+- [x] **DEPS-04**: `dgrijalva/jwt-go` replaced with `golang-jwt/jwt/v5` (or removed if unused)
+- [x] **DEPS-05**: `jasonlvhit/gocron` replaced with `robfig/cron/v3`
 - [ ] **DEPS-06**: Gin upgraded to latest stable (v1.12+)
 - [ ] **DEPS-07**: All other dependencies upgraded to current versions via `go get -u`
 - [x] **DEPS-08**: Deprecated `io/ioutil` usage replaced with `io.ReadAll`, `os.WriteFile`, etc.
@@ -102,9 +102,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | DEPS-01 | Phase 1 | Complete |
 | DEPS-02 | Phase 1 | Pending |
-| DEPS-03 | Phase 1 | Pending |
-| DEPS-04 | Phase 1 | Pending |
-| DEPS-05 | Phase 1 | Pending |
+| DEPS-03 | Phase 1 | Complete |
+| DEPS-04 | Phase 1 | Complete |
+| DEPS-05 | Phase 1 | Complete |
 | DEPS-06 | Phase 1 | Pending |
 | DEPS-07 | Phase 1 | Pending |
 | DEPS-08 | Phase 1 | Complete |

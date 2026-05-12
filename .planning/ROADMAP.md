@@ -32,7 +32,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   5. No deprecated `io/ioutil` calls remain in the codebase
 **Plans**: 4 plans
 - [x] 01-01-PLAN.md — Go 1.24 upgrade + ioutil replacement
-- [ ] 01-02-PLAN.md — Remove jwt-go + swap abandoned libraries (uuid, cron, websocket)
+- [x] 01-02-PLAN.md — Remove jwt-go + swap abandoned libraries (uuid, cron, websocket)
 - [ ] 01-03-PLAN.md — Upgrade Gin + remaining deps + GORM v1.26 migration
 - [ ] 01-04-PLAN.md — Extract credentials + update Docker config
 	
@@ -82,7 +82,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Dependency Upgrades | 4/4 | Planned | - |
+| 1. Dependency Upgrades | 4/4 | In Progress | - |
 | 2. Test Framework & Code Quality | 0/? | Not started | - |
 | 3. Correctness & Concurrency Fixes | 0/? | Not started | - |
 | 4. Error Handling Modernization | 0/? | Not started | - |
