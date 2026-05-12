@@ -9,10 +9,10 @@ import (
 
 //Base is
 type Base struct {
-	ID        string `sql:"type:uuid;primary_key"`
+	ID        string         `gorm:"type:uuid;primaryKey"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	DeletedAt *time.Time `gorm:"index"`
+	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
 //BeforeCreate

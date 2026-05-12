@@ -15,7 +15,7 @@ require (
 	go.uber.org/zap v1.28.0
 	golang.org/x/net v0.54.0
 	gorm.io/driver/sqlite v1.5.7
-	gorm.io/gorm v1.25.7-0.20240204074919-46816ad31dde
+	gorm.io/gorm v1.26.0
 	nhooyr.io/websocket v1.8.17
 )
 
