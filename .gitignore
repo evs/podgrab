@@ -18,3 +18,7 @@ assets/*
 keys/*
 backups/*
 nodemon.json
+
+# Air hot-reload dev tool
+.air.toml
+tmp/
