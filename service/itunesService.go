@@ -3,8 +3,8 @@ package service
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/url"
+	"os"
 
 	"github.com/TheHippo/podcastindex"
 	"github.com/akhilrex/podgrab/model"
@@ -38,18 +38,19 @@ func (service ItunesService) Query(q string) []*model.CommonSearchResultModel {
 type PodcastIndexService struct {
 }
 
-const (
-	PODCASTINDEX_KEY    = "LNGTNUAFVL9W2AQKVZ49"
-	PODCASTINDEX_SECRET = "H8tq^CZWYmAywbnngTwB$rwQHwMSR8#fJb#Bhgb3"
-)
-
 func (service PodcastIndexService) Query(q string) []*model.CommonSearchResultModel {
+	key := os.Getenv("PODCASTINDEX_KEY")
+	secret := os.Getenv("PODCASTINDEX_SECRET")
+	if key == "" || secret == "" {
+		fmt.Println("WARNING: PODCASTINDEX_KEY and/or PODCASTINDEX_SECRET not set; PodcastIndex search will be disabled")
+		return nil
+	}
 
-	c := podcastindex.NewClient(PODCASTINDEX_KEY, PODCASTINDEX_SECRET)
+	c := podcastindex.NewClient(key, secret)
 	var toReturn []*model.CommonSearchResultModel
 	podcasts, err := c.Search(q)
 	if err != nil {
-		log.Fatal(err.Error())
+		fmt.Println("PodcastIndex search error:", err)
 		return toReturn
 	}
 
