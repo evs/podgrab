@@ -33,7 +33,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 4 plans
 - [x] 01-01-PLAN.md — Go 1.24 upgrade + ioutil replacement
 - [x] 01-02-PLAN.md — Remove jwt-go + swap abandoned libraries (uuid, cron, websocket)
-- [ ] 01-03-PLAN.md — Upgrade Gin + remaining deps + GORM v1.26 migration
+- [x] 01-03-PLAN.md — Upgrade Gin + remaining deps + GORM v1.26 migration
 - [ ] 01-04-PLAN.md — Extract credentials + update Docker config
 	
 ### Phase 2: Test Framework & Code Quality
