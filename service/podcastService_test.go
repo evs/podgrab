@@ -2,6 +2,7 @@ package service
 
 import (
 	"testing"
+	"time"
 
 	"github.com/akhilrex/podgrab/db"
 	"gorm.io/driver/sqlite"
@@ -71,5 +72,98 @@ func TestServiceTestDBSetup(t *testing.T) {
 	err = db.DeletePodcastById(podcast.ID)
 	if err != nil {
 		t.Fatalf("DeletePodcastById: %v", err)
+	}
+}
+
+func TestGetPodcastById_NotFound(t *testing.T) {
+	setupServiceTestDB(t)
+
+	result := GetPodcastById("00000000-0000-0000-0000-000000000000")
+	if result == nil {
+		t.Error("GetPodcastById returned nil for nonexistent ID (expected non-nil zero-value)")
+	}
+	if result.Title != "" {
+		t.Errorf("GetPodcastById for nonexistent ID has Title = %q, want empty string", result.Title)
+	}
+}
+
+func TestGetAllPodcasts_Service(t *testing.T) {
+	setupServiceTestDB(t)
+
+	podcasts := []db.Podcast{
+		{Title: "Svc Podcast X", URL: "https://svc-x.example.com/feed.xml"},
+		{Title: "Svc Podcast Y", URL: "https://svc-y.example.com/feed.xml"},
+	}
+	for i := range podcasts {
+		err := db.CreatePodcast(&podcasts[i])
+		if err != nil {
+			t.Fatalf("CreatePodcast %q: %v", podcasts[i].Title, err)
+		}
+	}
+
+	results := GetAllPodcasts("created_at")
+	if results == nil {
+		t.Fatal("GetAllPodcasts returned nil")
+	}
+	if len(*results) < 2 {
+		t.Fatalf("len(results) = %d, want >= 2", len(*results))
+	}
+	found := make(map[string]bool)
+	for _, p := range *results {
+		found[p.Title] = true
+	}
+	for _, want := range []string{"Svc Podcast X", "Svc Podcast Y"} {
+		if !found[want] {
+			t.Errorf("podcast %q not found in service layer results", want)
+		}
+	}
+}
+
+func TestDeletePodcastEpisodes_ClearsItems(t *testing.T) {
+	setupServiceTestDB(t)
+
+	podcast := db.Podcast{
+		Title: "Delete Episodes Test",
+		URL:   "https://example.com/delete-episodes.xml",
+	}
+	err := db.CreatePodcast(&podcast)
+	if err != nil {
+		t.Fatalf("CreatePodcast: %v", err)
+	}
+
+	item1 := db.PodcastItem{
+		PodcastID:      podcast.ID,
+		Title:          "Ep 1",
+		GUID:           "delete-ep-guid-1",
+		PubDate:        time.Now(),
+		DownloadStatus: db.Downloaded,
+		DownloadPath:   "/nonexistent/path/ep1.mp3",
+	}
+	item2 := db.PodcastItem{
+		PodcastID:      podcast.ID,
+		Title:          "Ep 2",
+		GUID:           "delete-ep-guid-2",
+		PubDate:        time.Now(),
+		DownloadStatus: db.Downloaded,
+		DownloadPath:   "/nonexistent/path/ep2.mp3",
+	}
+	db.DB.Create(&item1)
+	db.DB.Create(&item2)
+
+	err = DeletePodcastEpisodes(podcast.ID)
+	// DeletePodcastEpisodes may error trying to DeleteFile on nonexistent paths
+	_ = err
+
+	var remainingItems []db.PodcastItem
+	err = db.GetAllPodcastItemsByPodcastId(podcast.ID, &remainingItems)
+	if err != nil {
+		t.Fatalf("GetAllPodcastItemsByPodcastId: %v", err)
+	}
+
+	for _, item := range remainingItems {
+		if item.DownloadStatus != db.Deleted {
+			t.Errorf("item %q (GUID=%q) has DownloadStatus=%d, want Deleted(%d)",
+				item.Title, item.GUID, item.DownloadStatus, db.Deleted)
+		}
 	}
 }
