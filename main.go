@@ -14,7 +14,7 @@ import (
 	"github.com/akhilrex/podgrab/service"
 	"github.com/gin-contrib/location"
 	"github.com/gin-gonic/gin"
-	"github.com/jasonlvhit/gocron"
+	"github.com/robfig/cron/v3"
 	_ "github.com/joho/godotenv/autoload"
 )
 
@@ -224,14 +224,17 @@ func intiCron() {
 		log.Print(err)
 	}
 	service.UnlockMissedJobs()
-	//gocron.Every(uint64(checkFrequency)).Minutes().Do(service.DownloadMissingEpisodes)
-	gocron.Every(uint64(checkFrequency)).Minutes().Do(service.RefreshEpisodes)
-	gocron.Every(uint64(checkFrequency)).Minutes().Do(service.CheckMissingFiles)
-	gocron.Every(uint64(checkFrequency) * 2).Minutes().Do(service.UnlockMissedJobs)
-	gocron.Every(uint64(checkFrequency) * 3).Minutes().Do(service.UpdateAllFileSizes)
-	gocron.Every(uint64(checkFrequency)).Minutes().Do(service.DownloadMissingImages)
-	gocron.Every(2).Days().Do(service.CreateBackup)
-	<-gocron.Start()
+	c := cron.New()
+	freqExpr := fmt.Sprintf("*/%d * * * *", checkFrequency)
+	c.AddFunc(freqExpr, func() { service.RefreshEpisodes() })
+	c.AddFunc(freqExpr, func() { service.CheckMissingFiles() })
+	doubleFreqExpr := fmt.Sprintf("*/%d * * * *", checkFrequency*2)
+	c.AddFunc(doubleFreqExpr, func() { service.UnlockMissedJobs() })
+	tripleFreqExpr := fmt.Sprintf("*/%d * * * *", checkFrequency*3)
+	c.AddFunc(tripleFreqExpr, func() { service.UpdateAllFileSizes() })
+	c.AddFunc(freqExpr, func() { service.DownloadMissingImages() })
+	c.AddFunc("0 0 */2 * *", func() { service.CreateBackup() })
+	c.Start()
 }
 
 func assetEnv() {

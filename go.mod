@@ -11,8 +11,8 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.4.2
 	github.com/grokify/html-strip-tags-go v0.0.0-20200923094847-079d207a09f1
-	github.com/jasonlvhit/gocron v0.0.1
 	github.com/joho/godotenv v1.3.0
+	github.com/robfig/cron/v3 v3.0.1
 	go.uber.org/zap v1.16.0
 	golang.org/x/net v0.0.0-20210614182718-04defd469f4e
 	gorm.io/driver/sqlite v1.1.3
