@@ -9,7 +9,6 @@ require (
 	github.com/gin-gonic/gin v1.7.2
 	github.com/gobeam/stringy v0.0.0-20200717095810-8a3637503f62
 	github.com/google/uuid v1.6.0
-	github.com/gorilla/websocket v1.4.2
 	github.com/grokify/html-strip-tags-go v0.0.0-20200923094847-079d207a09f1
 	github.com/joho/godotenv v1.3.0
 	github.com/robfig/cron/v3 v3.0.1
@@ -17,6 +16,7 @@ require (
 	golang.org/x/net v0.0.0-20210614182718-04defd469f4e
 	gorm.io/driver/sqlite v1.1.3
 	gorm.io/gorm v1.20.2
+	nhooyr.io/websocket v1.8.17
 )
 
 require (

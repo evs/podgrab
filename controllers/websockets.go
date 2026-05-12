@@ -1,22 +1,19 @@
 package controllers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 
-	"github.com/gorilla/websocket"
+	"nhooyr.io/websocket"
+	"nhooyr.io/websocket/wsjson"
 )
 
 type EnqueuePayload struct {
 	ItemIds   []string `json:"itemIds"`
 	PodcastId string   `json:"podcastId"`
 	TagIds    []string `json:"tagIds"`
-}
-
-var wsupgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
 }
 
 var activePlayers = make(map[*websocket.Conn]string)
@@ -32,18 +29,20 @@ type Message struct {
 }
 
 func Wshandler(w http.ResponseWriter, r *http.Request) {
-	conn, err := wsupgrader.Upgrade(w, r, nil)
+	conn, err := websocket.Accept(w, r, &websocket.AcceptOptions{
+		InsecureSkipVerify: true,
+	})
 	if err != nil {
-		fmt.Println("Failed to set websocket upgrade: %+v", err)
+		fmt.Println("Failed to set websocket upgrade:", err)
 		return
 	}
-	defer conn.Close()
+	defer conn.Close(websocket.StatusNormalClosure, "")
+
+	ctx := context.Background()
 	for {
 		var mess Message
-		err := conn.ReadJSON(&mess)
+		err := wsjson.Read(ctx, conn, &mess)
 		if err != nil {
-			//	fmt.Println("Socket Error")
-			//fmt.Println(err.Error())
 			isPlayer := activePlayers[conn] != ""
 			if isPlayer {
 				delete(activePlayers, conn)
@@ -58,34 +57,32 @@ func Wshandler(w http.ResponseWriter, r *http.Request) {
 		mess.Connection = conn
 		allConnections[conn] = mess.Identifier
 		broadcast <- mess
-		//	conn.WriteJSON(mess)
 	}
 }
 
 func HandleWebsocketMessages() {
+	ctx := context.Background()
 	for {
-		// Grab the next message from the broadcast channel
 		msg := <-broadcast
-		//fmt.Println(msg)
 
 		switch msg.MessageType {
 		case "RegisterPlayer":
 			activePlayers[msg.Connection] = msg.Identifier
-			for connection, _ := range allConnections {
-				connection.WriteJSON(Message{
+			for connection := range allConnections {
+				wsjson.Write(ctx, connection, Message{
 					Identifier:  msg.Identifier,
 					MessageType: "PlayerExists",
 				})
 			}
 			fmt.Println("Player Registered")
 		case "PlayerRemoved":
-			for connection, _ := range allConnections {
-				connection.WriteJSON(Message{
+			for connection := range allConnections {
+				wsjson.Write(ctx, connection, Message{
 					Identifier:  msg.Identifier,
 					MessageType: "NoPlayer",
 				})
 			}
-			fmt.Println("Player Registered")
+			fmt.Println("Player Removed")
 		case "Enqueue":
 			var payload EnqueuePayload
 			fmt.Println(msg.Payload)
@@ -94,7 +91,6 @@ func HandleWebsocketMessages() {
 				items := getItemsToPlay(payload.ItemIds, payload.PodcastId, payload.TagIds)
 				var player *websocket.Conn
 				for connection, id := range activePlayers {
-
 					if msg.Identifier == id {
 						player = connection
 						break
@@ -103,7 +99,7 @@ func HandleWebsocketMessages() {
 				if player != nil {
 					payloadStr, err := json.Marshal(items)
 					if err == nil {
-						player.WriteJSON(Message{
+						wsjson.Write(ctx, player, Message{
 							Identifier:  msg.Identifier,
 							MessageType: "Enqueue",
 							Payload:     string(payloadStr),
@@ -116,7 +112,6 @@ func HandleWebsocketMessages() {
 		case "Register":
 			var player *websocket.Conn
 			for connection, id := range activePlayers {
-
 				if msg.Identifier == id {
 					player = connection
 					break
@@ -125,25 +120,16 @@ func HandleWebsocketMessages() {
 
 			if player == nil {
 				fmt.Println("Player Not Exists")
-				msg.Connection.WriteJSON(Message{
+				wsjson.Write(ctx, msg.Connection, Message{
 					Identifier:  msg.Identifier,
 					MessageType: "NoPlayer",
 				})
 			} else {
-				msg.Connection.WriteJSON(Message{
+				wsjson.Write(ctx, msg.Connection, Message{
 					Identifier:  msg.Identifier,
 					MessageType: "PlayerExists",
 				})
 			}
 		}
-		// Send it out to every client that is currently connected
-		// for client := range clients {
-		// 	err := client.WriteJSON(msg)
-		// 	if err != nil {
-		// 		log.Printf("error: %v", err)
-		// 		client.Close()
-		// 		delete(clients, client)
-		// 	}
-		// }
 	}
 }
