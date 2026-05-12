@@ -47,7 +47,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. `removeStartingSlash` template function removes leading slashes instead of adding them
   4. No debug `fmt.Println` remains in `main.go` for `removeStartingSlash`
   5. Service and DB layer tests pass for core podcast CRUD operations
-**Plans**: TBD
+**Plans**: 4 (01-01 through 01-04)
 
 ### Phase 3: Correctness & Concurrency Fixes
 **Goal**: Download scheduling works reliably, date parsing handles real RSS feeds, crashes are caught early
@@ -60,7 +60,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. App exits with fatal error if database initialization fails (no silent nil DB)
   4. WebSocket connections don't cause data races under concurrent access
   5. Download concurrency and date parsing have passing verification tests
-**Plans**: TBD
+**Plans**: 4 (01-01 through 01-04)
 
 ### Phase 4: Error Handling Modernization
 **Goal**: Errors are visible, structured, and properly surfaced instead of silently swallowed
@@ -73,7 +73,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. HTTP handlers return proper 4xx/5xx status codes on errors instead of empty or wrong responses
   4. No panic-on-error patterns remain in `service/fileService.go`
   5. Error handling conventions documented for future development
-**Plans**: TBD
+**Plans**: 4 (01-01 through 01-04)
 
 ## Progress
 
@@ -82,7 +82,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Dependency Upgrades | 0/4 | Not started | - |
+| 1. Dependency Upgrades | 4/4 | Planned | - |
 | 2. Test Framework & Code Quality | 0/? | Not started | - |
 | 3. Correctness & Concurrency Fixes | 0/? | Not started | - |
 | 4. Error Handling Modernization | 0/? | Not started | - |
