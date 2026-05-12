@@ -5,6 +5,8 @@ services:
     container_name: podgrab
     environment:
       - CHECK_FREQUENCY=240
+      - PODCASTINDEX_KEY=your_key_here
+      - PODCASTINDEX_SECRET=your_secret_here
     volumes:
       - /path/to/config:/config
       - /path/to/data:/assets
