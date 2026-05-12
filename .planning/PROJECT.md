@@ -4,7 +4,7 @@
 
 Podgrab is a self-hosted podcast manager that automatically downloads podcast episodes as they become live. Built in Go with a server-side rendered web UI (Gin + Vue 2 + SQLite), it lets users subscribe to podcasts, search iTunes/PodcastIndex/gPodder, download episodes, organize with tags, and play episodes in-browser with real-time sync across tabs.
 
-The project is being modernized — upgrading outdated dependencies (Go 1.15, GORM v1, Vue 2) and replacing the server-rendered UI with a React SPA, done incrementally so all existing features keep working throughout.
+The immediate focus is stabilizing the existing Go app — upgrading outdated dependencies, fixing known bugs, modernizing error handling, and adding test coverage so scheduling and downloading work reliably. React UI modernization and REST API layer come after the base is solid and assessed.
 
 ## Core Value
 
@@ -29,16 +29,18 @@ Podcast episodes are automatically downloaded and available — that download-an
 
 ### Active
 
-- [ ] Upgrade Go and all dependencies to current versions (Go 1.22+, GORM v1.25+, Gin latest, etc.)
-- [ ] Replace Vue 2 frontend with a React SPA, built incrementally alongside existing UI
-- [ ] Add proper REST API layer on the Go backend for the React frontend to consume
-- [ ] Fix known bugs (typo handler, `removeStartingSlash`, concurrency batching, date parsing)
+- [ ] Upgrade Go to 1.24+ and all dependencies to current versions (GORM v1.26+, Gin latest, robfig/cron/v3, google/uuid, golang-jwt/jwt/v5)
+- [ ] Fix known bugs (typo handler, `removeStartingSlash`, download concurrency batching, date parsing, DB init error swallowed)
 - [ ] Move hardcoded PodcastIndex API credentials to environment variables
-- [ ] Modernize error handling (replace `fmt.Println` with structured logging, propagate errors properly)
+- [ ] Modernize error handling (replace `fmt.Println` with structured logging, propagate errors properly, fatal on DB init failure)
 - [ ] Add thread-safe state management for WebSocket maps (replace bare maps with `sync.Map` or mutex-protected)
+- [ ] Add test coverage for service and DB layers to verify fixes and prevent regressions
 
 ### Out of Scope
 
+- React SPA / frontend modernization — deferred until after stabilization assessment
+- REST API layer — deferred until after stabilization assessment
+- Responsive design / dark mode / UI QoL features — deferred until after stabilization assessment
 - Mobile native app — web-first, responsive is sufficient for now
 - Multi-user authentication / role-based access — single-user tool, basic auth is adequate
 - Podcast streaming without download — Podgrab is a download-first manager
@@ -54,23 +56,43 @@ Podcast episodes are automatically downloaded and available — that download-an
 - Dual logging system: `zap.SugaredLogger` (rarely used) and `fmt.Println` (pervasively used)
 - Docker-based deployment with Alpine runtime, persistent volumes for `/config` and `/assets`
 - Frontend assets are vendored JS/CSS libraries — no build system, no npm
+- Dev environment: air hot-reload on port 8080, nginx forwarding 8084→8080, LaunchAgent for boot persistence, CHECK_FREQUENCY=1 for fast iteration
+- Production Docker: port 8084, CHECK_FREQUENCY=30, same volume mounts
 
 ## Constraints
 
-- **Tech Stack**: Go backend (must stay Go), SQLite via GORM (must stay SQLite), React for new frontend
-- **Incremental**: All existing features must work throughout the migration — no flag-day cutover
+- **Tech Stack**: Go backend (must stay Go), SQLite via GORM (must stay SQLite)
+- **Stabilize first**: Dependency upgrades and bug fixes before any new features or UI work
 - **Compatibility**: Existing data (SQLite DB, downloaded files, OPML imports) must continue to work
 - **Deployment**: Must remain Docker-deployable with the same volume mount pattern (`/config`, `/assets`)
 - **No feature loss**: Every current capability (search, download, tags, OPML, gPodder, backups, player sync) must be preserved
+- **Dev environment**: air hot-reload workflow must continue to work throughout stabilization
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| React for new frontend | User chose React over Svelte/Angular for new SPA | — Pending |
-| Incremental migration | Keep existing features working throughout, avoid big-bang cutover | — Pending |
-| API + frontend built together | Add API endpoints as React components need them, not all upfront | — Pending |
-| Keep all existing features | No capability regression during migration | — Pending |
+| Stabilize before modernize | Scheduling/downloading must be reliable before adding React UI or API layer | — Pending |
+| Tests alongside fixes | Add tests to verify bug fixes and prevent regressions | — Pending |
+| React for future frontend | User chose React over Svelte/Angular for future SPA | — Pending |
+| Incremental migration (future) | Keep existing features working throughout, avoid big-bang cutover | — Pending |
+
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `/gsd-transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+
+**After each milestone** (via `/gsd-complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
 
 ---
-*Last updated: 2026-05-11 after initialization*
+*Last updated: 2026-05-12 after questioning revision — stabilize-first scope*
