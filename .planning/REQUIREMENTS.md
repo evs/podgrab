@@ -17,8 +17,8 @@ Requirements for stabilization milestone. Each maps to roadmap phases.
 - [x] **DEPS-06**: Gin upgraded to latest stable (v1.12+)
 - [x] **DEPS-07**: All other dependencies upgraded to current versions via `go get -u`
 - [x] **DEPS-08**: Deprecated `io/ioutil` usage replaced with `io.ReadAll`, `os.WriteFile`, etc.
-- [ ] **DEPS-09**: Hardcoded PodcastIndex API credentials moved to environment variables (`PODCASTINDEX_KEY`, `PODCASTINDEX_SECRET`)
-- [ ] **DEPS-10**: Dockerfile and docker-compose.yml updated for new Go version and build requirements
+- [x] **DEPS-09**: Hardcoded PodcastIndex API credentials moved to environment variables (`PODCASTINDEX_KEY`, `PODCASTINDEX_SECRET`)
+- [x] **DEPS-10**: Dockerfile and docker-compose.yml updated for new Go version and build requirements
 
 ### Bug Fixes
 
@@ -108,8 +108,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DEPS-06 | Phase 1 | Complete |
 | DEPS-07 | Phase 1 | Complete |
 | DEPS-08 | Phase 1 | Complete |
-| DEPS-09 | Phase 1 | Pending |
-| DEPS-10 | Phase 1 | Pending |
+| DEPS-09 | Phase 1 | Complete |
+| DEPS-10 | Phase 1 | Complete |
 | TEST-01 | Phase 2 | Pending |
 | BUG-01 | Phase 2 | Pending |
 | BUG-02 | Phase 2 | Pending |
