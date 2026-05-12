@@ -4,7 +4,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"strconv"
@@ -723,7 +723,7 @@ func makeQuery(url string) ([]byte, error) {
 
 	defer resp.Body.Close()
 	fmt.Println("Response status:", resp.Status)
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 
 	return body, nil
 

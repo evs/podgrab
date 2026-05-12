@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -100,7 +99,7 @@ func CreateNfoFile(podcast *db.Podcast) error {
 		return err
 	}
 	toPersist := xml.Header + string(out)
-	return ioutil.WriteFile(finalPath, []byte(toPersist), 0644)
+	return os.WriteFile(finalPath, []byte(toPersist), 0644)
 }
 
 func DownloadPodcastCoverImage(link string, podcastName string) (string, error) {
