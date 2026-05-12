@@ -10,11 +10,10 @@ func TestRemoveStartingSlash(t *testing.T) {
 		raw  string
 		want string
 	}{
-		// Current buggy behavior — no slash → adds slash, slash → unchanged
-		// Plan 02-03 will fix both the function and these expected values
-		{name: "no leading slash", raw: "foo/bar", want: "/foo/bar"},
-		{name: "leading slash", raw: "/foo/bar", want: "/foo/bar"},
-		{name: "only slash", raw: "/", want: "/"},
+		{name: "no leading slash", raw: "foo/bar", want: "foo/bar"},
+		{name: "leading slash", raw: "/foo/bar", want: "foo/bar"},
+		{name: "empty string", raw: "", want: ""},
+		{name: "only slash", raw: "/", want: ""},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

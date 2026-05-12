@@ -28,11 +28,10 @@ var funcMap = template.FuncMap{
 		return result
 	},
 	"removeStartingSlash": func(raw string) string {
-		fmt.Println(raw)
-		if string(raw[0]) == "/" {
-			return raw
+		if len(raw) > 0 && raw[0] == '/' {
+			return raw[1:]
 		}
-		return "/" + raw
+		return raw
 	},
 	"isDateNull": func(raw time.Time) bool {
 		return raw == (time.Time{})
