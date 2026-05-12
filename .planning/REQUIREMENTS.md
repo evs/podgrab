@@ -110,23 +110,23 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DEPS-08 | Phase 1 | Pending |
 | DEPS-09 | Phase 1 | Pending |
 | DEPS-10 | Phase 1 | Pending |
+| TEST-01 | Phase 2 | Pending |
 | BUG-01 | Phase 2 | Pending |
 | BUG-02 | Phase 2 | Pending |
 | BUG-03 | Phase 2 | Pending |
-| BUG-04 | Phase 2 | Pending |
-| BUG-05 | Phase 2 | Pending |
-| BUG-06 | Phase 2 | Pending |
-| BUG-07 | Phase 2 | Pending |
-| ERR-01 | Phase 3 | Pending |
-| ERR-02 | Phase 3 | Pending |
-| ERR-03 | Phase 3 | Pending |
-| ERR-04 | Phase 3 | Pending |
-| ERR-05 | Phase 3 | Pending |
-| TEST-01 | Phase 2 | Pending |
 | TEST-02 | Phase 2 | Pending |
 | TEST-03 | Phase 2 | Pending |
-| TEST-04 | Phase 2 | Pending |
-| TEST-05 | Phase 2 | Pending |
+| BUG-04 | Phase 3 | Pending |
+| BUG-05 | Phase 3 | Pending |
+| BUG-06 | Phase 3 | Pending |
+| BUG-07 | Phase 3 | Pending |
+| TEST-04 | Phase 3 | Pending |
+| TEST-05 | Phase 3 | Pending |
+| ERR-01 | Phase 4 | Pending |
+| ERR-02 | Phase 4 | Pending |
+| ERR-03 | Phase 4 | Pending |
+| ERR-04 | Phase 4 | Pending |
+| ERR-05 | Phase 4 | Pending |
 
 **Coverage:**
 - v1 requirements: 27 total
