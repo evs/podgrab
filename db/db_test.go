@@ -165,3 +165,36 @@ func TestPodcastItemsCRUD(t *testing.T) {
 		t.Errorf("len(remaining) = %d, want 1 after deleting one item", len(remaining))
 	}
 }
+
+func TestDBInit(t *testing.T) {
+	// Test 1: valid path (memory)
+	origDB := DB
+	defer func() { DB = origDB }()
+
+	// Init does not accept a path parameter; it reads CONFIG env.
+	// We test the internal path assembly logic indirectly via Init by
+	// setting a temporary directory as CONFIG.
+	tmpDir := t.TempDir()
+	origConfig := os.Getenv("CONFIG")
+	os.Setenv("CONFIG", tmpDir)
+	defer os.Setenv("CONFIG", origConfig)
+
+	// Re-Init should succeed
+	db, err := Init()
+	if err != nil {
+		t.Fatalf("Init with valid path failed: %v", err)
+	}
+	if db == nil {
+		t.Fatal("Init returned nil db without error")
+	}
+	DB = db
+
+	// Ping should succeed
+	sqlDB, err := db.DB()
+	if err != nil {
+		t.Fatalf("db.DB() after Init: %v", err)
+	}
+	if err := sqlDB.Ping(); err != nil {
+		t.Fatalf("Ping after Init: %v", err)
+	}
+}
