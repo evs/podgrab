@@ -3,7 +3,6 @@ package controllers
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"sync"
 
@@ -37,7 +36,7 @@ func Wshandler(w http.ResponseWriter, r *http.Request) {
 		InsecureSkipVerify: true,
 	})
 	if err != nil {
-		fmt.Println("Failed to set websocket upgrade:", err)
+		Logger.Errorw("Failed to set websocket upgrade", "error", err)
 		return
 	}
 	defer conn.Close(websocket.StatusNormalClosure, "")
@@ -91,7 +90,7 @@ func HandleWebsocketMessages() {
 				})
 			}
 			connectionsMutex.RUnlock()
-			fmt.Println("Player Registered")
+			Logger.Debugw("Player registered", "identifier", msg.Identifier)
 		case "PlayerRemoved":
 			connectionsMutex.RLock()
 			for connection := range allConnections {
@@ -101,10 +100,10 @@ func HandleWebsocketMessages() {
 				})
 			}
 			connectionsMutex.RUnlock()
-			fmt.Println("Player Removed")
+			Logger.Debugw("Player removed", "identifier", msg.Identifier)
 		case "Enqueue":
 			var payload EnqueuePayload
-			fmt.Println(msg.Payload)
+			Logger.Debugw("WebSocket enqueue message received", "payload", msg.Payload)
 			err := json.Unmarshal([]byte(msg.Payload), &payload)
 			if err == nil {
 				items := getItemsToPlay(payload.ItemIds, payload.PodcastId, payload.TagIds)
@@ -128,7 +127,7 @@ func HandleWebsocketMessages() {
 					}
 				}
 			} else {
-				fmt.Println(err.Error())
+				Logger.Warnw("Failed to unmarshal enqueue payload", "error", err)
 			}
 		case "Register":
 			var player *websocket.Conn
@@ -142,7 +141,7 @@ func HandleWebsocketMessages() {
 			playersMutex.RUnlock()
 
 			if player == nil {
-				fmt.Println("Player Not Exists")
+				Logger.Debugw("Player not exists", "identifier", msg.Identifier)
 				wsjson.Write(ctx, msg.Connection, Message{
 					Identifier:  msg.Identifier,
 					MessageType: "NoPlayer",

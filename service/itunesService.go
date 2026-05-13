@@ -8,6 +8,7 @@ import (
 
 	"github.com/TheHippo/podcastindex"
 	"github.com/akhilrex/podgrab/model"
+	"go.uber.org/zap"
 )
 
 type SearchService interface {
@@ -42,7 +43,7 @@ func (service PodcastIndexService) Query(q string) []*model.CommonSearchResultMo
 	key := os.Getenv("PODCASTINDEX_KEY")
 	secret := os.Getenv("PODCASTINDEX_SECRET")
 	if key == "" || secret == "" {
-		fmt.Println("WARNING: PODCASTINDEX_KEY and/or PODCASTINDEX_SECRET not set; PodcastIndex search will be disabled")
+		Logger.Warn("PODCASTINDEX_KEY and/or PODCASTINDEX_SECRET not set; PodcastIndex search will be disabled")
 		return nil
 	}
 
@@ -50,7 +51,7 @@ func (service PodcastIndexService) Query(q string) []*model.CommonSearchResultMo
 	var toReturn []*model.CommonSearchResultModel
 	podcasts, err := c.Search(q)
 	if err != nil {
-		fmt.Println("PodcastIndex search error:", err)
+		Logger.Warnw("PodcastIndex search error", zap.Error(err))
 		return toReturn
 	}
 

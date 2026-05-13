@@ -38,7 +38,10 @@ func Download(link string, episodeTitle string, podcastName string, prefix strin
 		return "", err
 	}
 
-	fileName := getFileName(link, episodeTitle, ".mp3")
+	fileName, err := getFileName(link, episodeTitle, ".mp3")
+	if err != nil {
+		return "", err
+	}
 	if prefix != "" {
 		fileName = fmt.Sprintf("%s-%s", prefix, fileName)
 	}
@@ -68,12 +71,15 @@ func Download(link string, episodeTitle string, podcastName string, prefix strin
 
 }
 
-func GetPodcastLocalImagePath(link string, podcastName string) string {
-	fileName := getFileName(link, "folder", ".jpg")
+func GetPodcastLocalImagePath(link string, podcastName string) (string, error) {
+	fileName, err := getFileName(link, "folder", ".jpg")
+	if err != nil {
+		return "", err
+	}
 	folder := createDataFolderIfNotExists(podcastName)
 
 	finalPath := path.Join(folder, fileName)
-	return finalPath
+	return finalPath, nil
 }
 
 func CreateNfoFile(podcast *db.Podcast) error {
@@ -119,7 +125,10 @@ func DownloadPodcastCoverImage(link string, podcastName string) (string, error) 
 		return "", err
 	}
 
-	fileName := getFileName(link, "folder", ".jpg")
+	fileName, err := getFileName(link, "folder", ".jpg")
+	if err != nil {
+		return "", err
+	}
 	folder := createDataFolderIfNotExists(podcastName)
 
 	finalPath := path.Join(folder, fileName)
@@ -162,7 +171,10 @@ func DownloadImage(link string, episodeId string, podcastName string) (string, e
 		return "", err
 	}
 
-	fileName := getFileName(link, episodeId, ".jpg")
+	fileName, err := getFileName(link, episodeId, ".jpg")
+	if err != nil {
+		return "", err
+	}
 	folder := createDataFolderIfNotExists(podcastName)
 	imageFolder := createFolder("images", folder)
 	finalPath := path.Join(imageFolder, fileName)
@@ -192,9 +204,9 @@ func DownloadImage(link string, episodeId string, podcastName string) (string, e
 func changeOwnership(path string) {
 	uid, err1 := strconv.Atoi(os.Getenv("PUID"))
 	gid, err2 := strconv.Atoi(os.Getenv("PGID"))
-	fmt.Println(path)
+	Logger.Debugw("Changing ownership", "path", path)
 	if err1 == nil && err2 == nil {
-		fmt.Println(path + " : Attempting change")
+		Logger.Debugw("Attempting ownership change", "path", path)
 		os.Chown(path, uid, gid)
 	}
 
@@ -246,7 +258,7 @@ func deleteOldBackup() {
 
 	toDelete := files[5:]
 	for _, file := range toDelete {
-		fmt.Println(file)
+		Logger.Debugw("Deleting old backup", "file", file)
 		DeleteFile(file)
 	}
 }
@@ -381,9 +393,11 @@ func deletePodcastFolder(folder string) error {
 	return os.RemoveAll(createDataFolderIfNotExists(folder))
 }
 
-func getFileName(link string, title string, defaultExtension string) string {
+func getFileName(link string, title string, defaultExtension string) (string, error) {
 	fileUrl, err := url.Parse(link)
-	checkError(err)
+	if err != nil {
+		return "", err
+	}
 
 	parsed := fileUrl.Path
 	ext := filepath.Ext(parsed)
@@ -393,7 +407,7 @@ func getFileName(link string, title string, defaultExtension string) string {
 	}
 	//str := stringy.New(title)
 	str := stringy.New(cleanFileName(title))
-	return str.KebabCase().Get() + ext
+	return str.KebabCase().Get() + ext, nil
 
 }
 
@@ -401,8 +415,4 @@ func cleanFileName(original string) string {
 	return sanitize.Name(original)
 }
 
-func checkError(err error) {
-	if err != nil {
-		panic(err)
-	}
-}
+

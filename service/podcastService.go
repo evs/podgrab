@@ -139,7 +139,7 @@ func GetAllPodcasts(sorting string) *[]db.Podcast {
 func AddOpml(content string) error {
 	model, err := ParseOpml(content)
 	if err != nil {
-		fmt.Println(err.Error())
+		Logger.Errorw("Failed to parse OPML", "error", err)
 		return errors.New("Invalid file format")
 	}
 	var wg sync.WaitGroup
@@ -239,10 +239,11 @@ func AddPodcast(url string) (db.Podcast, error) {
 	err := db.GetPodcastByURL(url, &podcast)
 	setting := db.GetOrCreateSetting()
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		data, body, err := FetchURL(url)
+		var data model.PodcastData
+		var body []byte
+		data, body, err = FetchURL(url)
 		if err != nil {
-			fmt.Println(err.Error())
-			Logger.Errorw("Error adding podcast", err)
+			Logger.Errorw("Error adding podcast", zap.Error(err))
 			return db.Podcast{}, err
 		}
 
@@ -407,7 +408,7 @@ func SetPodcastItemAsQueuedForDownload(id string) error {
 func DownloadMissingImages() error {
 	setting := db.GetOrCreateSetting()
 	if !setting.DownloadEpisodeImages {
-		fmt.Println("No Need To Download Images")
+		Logger.Debug("No need to download image")
 		return nil
 	}
 	items, err := db.GetAllPodcastItemsWithoutImage()
@@ -456,7 +457,7 @@ func SetPodcastItemAsDownloaded(id string, location string) error {
 
 	err := db.GetPodcastItemById(id, &podcastItem)
 	if err != nil {
-		fmt.Println("Location", err.Error())
+		Logger.Errorw("Failed to get podcast item for marking as downloaded", zap.Error(err))
 		return err
 	}
 
@@ -525,18 +526,19 @@ func DownloadMissingEpisodes() error {
 	const JOB_NAME = "DownloadMissingEpisodes"
 	lock := db.GetLock(JOB_NAME)
 	if lock.IsLocked() {
-		fmt.Println(JOB_NAME + " is locked")
+		Logger.Debugw("Job is locked", "job", JOB_NAME)
 		return nil
 	}
 	db.Lock(JOB_NAME, 120)
 	setting := db.GetOrCreateSetting()
 
 	data, err := db.GetAllPodcastItemsToBeDownloaded()
-
-	fmt.Println("Processing episodes: ", strconv.Itoa(len(*data)))
 	if err != nil {
+		Logger.Errorw("Failed to get items to download", "error", err)
 		return err
 	}
+
+	Logger.Infow("Processing missing episodes", "count", len(*data))
 	var wg sync.WaitGroup
 	sem := make(chan struct{}, setting.MaxDownloadConcurrency)
 	for _, item := range *data {
@@ -586,7 +588,7 @@ func DeleteEpisodeFile(podcastItemId string) error {
 	err = DeleteFile(podcastItem.DownloadPath)
 
 	if err != nil && !os.IsNotExist(err) {
-		fmt.Println(err.Error())
+		Logger.Errorw("Failed to delete episode file", zap.Error(err))
 		return err
 	}
 
@@ -611,7 +613,7 @@ func DownloadSingleEpisode(podcastItemId string) error {
 	url, err := Download(podcastItem.FileURL, podcastItem.Title, podcastItem.Podcast.Title, GetPodcastPrefix(&podcastItem, setting))
 
 	if err != nil {
-		fmt.Println(err.Error())
+		Logger.Errorw("Failed to download episode", zap.Error(err))
 		return err
 	}
 	err = SetPodcastItemAsDownloaded(podcastItem.ID, url)
@@ -632,7 +634,7 @@ func RefreshEpisodes() error {
 	for _, item := range data {
 		isNewPodcast := item.LastEpisode == nil
 		if isNewPodcast {
-			fmt.Println(item.Title)
+			Logger.Infow("New podcast detected", "title", item.Title)
 			db.ForceSetLastEpisodeDate(item.ID)
 		}
 		AddPodcastItems(&item, isNewPodcast)
@@ -716,9 +718,6 @@ func DeleteTag(id string) error {
 }
 
 func makeQuery(url string) ([]byte, error) {
-	//link := "https://www.goodreads.com/search/index.xml?q=Good%27s+Omens&key=" + "jCmNlIXjz29GoB8wYsrd0w"
-	//link := "https://www.goodreads.com/search/index.xml?key=jCmNlIXjz29GoB8wYsrd0w&q=Ender%27s+Game"
-	fmt.Println(url)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -730,7 +729,7 @@ func makeQuery(url string) ([]byte, error) {
 	}
 
 	defer resp.Body.Close()
-	fmt.Println("Response status:", resp.Status)
+	Logger.Infow("HTTP response received", "url", url, "status", resp.Status)
 	body, err := io.ReadAll(resp.Body)
 
 	return body, nil

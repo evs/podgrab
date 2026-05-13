@@ -171,7 +171,7 @@ func PlayerPage(c *gin.Context) {
 	} else {
 		title = "Playing Latest Episodes"
 		if err := db.GetPaginatedPodcastItems(1, 20, nil, nil, time.Time{}, &items, &totalCount); err != nil {
-			fmt.Println(err.Error())
+			Logger.Errorw("Failed to get paginated podcast items for player", "error", err)
 		}
 	}
 	setting := c.MustGet("setting").(*db.Setting)

@@ -1,8 +1,8 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"path"
@@ -11,10 +11,19 @@ import (
 	"github.com/akhilrex/podgrab/model"
 	"github.com/akhilrex/podgrab/service"
 	"github.com/gin-contrib/location"
+	"go.uber.org/zap"
+	"gorm.io/gorm"
 
 	"github.com/akhilrex/podgrab/db"
 	"github.com/gin-gonic/gin"
 )
+
+var Logger *zap.SugaredLogger
+
+func init() {
+	zapper, _ := zap.NewProduction()
+	Logger = zapper.Sugar()
+}
 
 const (
 	DateAdded   = "dateadded"
@@ -89,8 +98,12 @@ func GetPodcastById(c *gin.Context) {
 		var podcast db.Podcast
 
 		err := db.GetPodcastById(searchByIdQuery.Id, &podcast)
-		fmt.Println(err)
-		c.JSON(200, podcast)
+		if err != nil {
+			Logger.Errorw("Failed to get podcast", "error", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, podcast)
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 	}
@@ -168,8 +181,12 @@ func GetPodcastItemsByPodcastId(c *gin.Context) {
 		var podcastItems []db.PodcastItem
 
 		err := db.GetAllPodcastItemsByPodcastId(searchByIdQuery.Id, &podcastItems)
-		fmt.Println(err)
-		c.JSON(200, podcastItems)
+		if err != nil {
+			Logger.Errorw("Failed to get podcast items", "error", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, podcastItems)
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 	}
@@ -181,9 +198,13 @@ func DownloadAllEpisodesByPodcastId(c *gin.Context) {
 	if c.ShouldBindUri(&searchByIdQuery) == nil {
 
 		err := service.SetAllEpisodesToDownload(searchByIdQuery.Id)
-		fmt.Println(err)
+		if err != nil {
+			Logger.Errorw("Failed to set episodes to download", "error", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
 		go service.RefreshEpisodes()
-		c.JSON(200, gin.H{})
+		c.JSON(http.StatusOK, gin.H{})
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 	}
@@ -193,7 +214,9 @@ func GetAllPodcastItems(c *gin.Context) {
 	var filter model.EpisodesFilter
 	err := c.ShouldBindQuery(&filter)
 	if err != nil {
-		fmt.Println(err.Error())
+		Logger.Errorw("Invalid filter parameters", "error", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 	filter.VerifyPaginationValues()
 	if podcastItems, totalCount, err := db.GetPaginatedPodcastItemsNew(filter); err == nil {
@@ -217,8 +240,16 @@ func GetPodcastItemById(c *gin.Context) {
 		var podcast db.PodcastItem
 
 		err := db.GetPodcastItemById(searchByIdQuery.Id, &podcast)
-		fmt.Println(err)
-		c.JSON(200, podcast)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+			} else {
+				Logger.Errorw("Failed to get podcast item", "error", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			}
+			return
+		}
+		c.JSON(http.StatusOK, podcast)
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 	}
@@ -253,7 +284,12 @@ func GetPodcastImageById(c *gin.Context) {
 
 		err := db.GetPodcastById(searchByIdQuery.Id, &podcast)
 		if err == nil {
-			localPath := service.GetPodcastLocalImagePath(podcast.Image, podcast.Title)
+			localPath, err := service.GetPodcastLocalImagePath(podcast.Image, podcast.Title)
+			if err != nil {
+				Logger.Errorw("Failed to resolve podcast image path", "error", err)
+				c.Redirect(302, podcast.Image)
+				return
+			}
 			if _, err = os.Stat(localPath); os.IsNotExist(err) {
 				c.Redirect(302, podcast.Image)
 			} else {
@@ -395,17 +431,17 @@ func AddPodcast(c *gin.Context) {
 		pod, err := service.AddPodcast(addPodcastData.Url)
 		if err == nil {
 			go service.RefreshEpisodes()
-			c.JSON(200, pod)
+			c.JSON(http.StatusOK, pod)
 		} else {
 			if v, ok := err.(*model.PodcastAlreadyExistsError); ok {
-				c.JSON(409, gin.H{"message": v.Error()})
+				c.JSON(http.StatusConflict, gin.H{"message": v.Error()})
 			} else {
-				log.Println(err.Error())
+				Logger.Errorw("Failed to add podcast", "error", err)
 				c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 			}
 		}
 	} else {
-		log.Println(err.Error())
+		Logger.Errorw("Invalid add podcast request", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 	}
 }
@@ -541,15 +577,15 @@ func GetRss(c *gin.Context) {
 	var items []db.PodcastItem
 
 	if err := db.GetAllPodcastItems(&items); err != nil {
-		fmt.Println(err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		Logger.Errorw("Failed to get all podcast items for RSS", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	title := "Podgrab"
 	description := "Pograb playlist"
 
-	c.XML(200, createRss(items, title, description, "", c))
-
+	c.XML(http.StatusOK, createRss(items, title, description, "", c))
 }
 func DeleteTagById(c *gin.Context) {
 	var searchByIdQuery SearchByIdQuery
@@ -568,17 +604,17 @@ func AddTag(c *gin.Context) {
 	if err == nil {
 		tag, err := service.AddTag(addTagData.Label, addTagData.Description)
 		if err == nil {
-			c.JSON(200, tag)
+			c.JSON(http.StatusOK, tag)
 		} else {
 			if v, ok := err.(*model.TagAlreadyExistsError); ok {
-				c.JSON(409, gin.H{"message": v.Error()})
+				c.JSON(http.StatusConflict, gin.H{"message": v.Error()})
 			} else {
-				log.Println(err.Error())
+				Logger.Errorw("Failed to add tag", "error", err)
 				c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 			}
 		}
 	} else {
-		log.Println(err.Error())
+		Logger.Errorw("Invalid add tag request", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 	}
 }
@@ -629,7 +665,7 @@ func UpdateSetting(c *gin.Context) {
 
 		}
 	} else {
-		fmt.Println(err.Error())
+		Logger.Errorw("Invalid update settings request", "error", err)
 		c.JSON(http.StatusBadRequest, err)
 	}
 
