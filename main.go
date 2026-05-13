@@ -125,6 +125,12 @@ var funcMap = template.FuncMap{
 }
 
 func main() {
+	_, err := db.Init()
+	if err != nil {
+		log.Fatalf("Database initialization failed: %v", err)
+	}
+	db.Migrate()
+
 	r := gin.Default()
 
 	r.Use(setupSettings())

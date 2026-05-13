@@ -1,6 +1,7 @@
 package db
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path"
@@ -23,7 +24,13 @@ func Init() (*gorm.DB, error) {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
 
-	localDB, _ := db.DB()
+	localDB, err := db.DB()
+	if err != nil {
+		return nil, fmt.Errorf("get underlying sql.DB: %w", err)
+	}
+	if err := localDB.Ping(); err != nil {
+		return nil, fmt.Errorf("ping database: %w", err)
+	}
 	localDB.SetMaxIdleConns(10)
 	// Enable WAL mode for better concurrent read performance
 	localDB.Exec("PRAGMA journal_mode=WAL")
