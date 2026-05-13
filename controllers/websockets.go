@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sync"
 
 	"nhooyr.io/websocket"
 	"nhooyr.io/websocket/wsjson"
@@ -20,6 +21,9 @@ var activePlayers = make(map[*websocket.Conn]string)
 var allConnections = make(map[*websocket.Conn]string)
 
 var broadcast = make(chan Message) // broadcast channel
+
+var playersMutex sync.RWMutex
+var connectionsMutex sync.RWMutex
 
 type Message struct {
 	Identifier  string          `json:"identifier"`
@@ -43,19 +47,28 @@ func Wshandler(w http.ResponseWriter, r *http.Request) {
 		var mess Message
 		err := wsjson.Read(ctx, conn, &mess)
 		if err != nil {
-			isPlayer := activePlayers[conn] != ""
+			isPlayer := false
+			playersMutex.RLock()
+			isPlayer = activePlayers[conn] != ""
+			playersMutex.RUnlock()
 			if isPlayer {
+				playersMutex.Lock()
 				delete(activePlayers, conn)
+				playersMutex.Unlock()
 				broadcast <- Message{
 					MessageType: "PlayerRemoved",
 					Identifier:  mess.Identifier,
 				}
 			}
+			connectionsMutex.Lock()
 			delete(allConnections, conn)
+			connectionsMutex.Unlock()
 			break
 		}
 		mess.Connection = conn
+		connectionsMutex.Lock()
 		allConnections[conn] = mess.Identifier
+		connectionsMutex.Unlock()
 		broadcast <- mess
 	}
 }
@@ -67,21 +80,27 @@ func HandleWebsocketMessages() {
 
 		switch msg.MessageType {
 		case "RegisterPlayer":
+			playersMutex.Lock()
 			activePlayers[msg.Connection] = msg.Identifier
+			playersMutex.Unlock()
+			connectionsMutex.RLock()
 			for connection := range allConnections {
 				wsjson.Write(ctx, connection, Message{
 					Identifier:  msg.Identifier,
 					MessageType: "PlayerExists",
 				})
 			}
+			connectionsMutex.RUnlock()
 			fmt.Println("Player Registered")
 		case "PlayerRemoved":
+			connectionsMutex.RLock()
 			for connection := range allConnections {
 				wsjson.Write(ctx, connection, Message{
 					Identifier:  msg.Identifier,
 					MessageType: "NoPlayer",
 				})
 			}
+			connectionsMutex.RUnlock()
 			fmt.Println("Player Removed")
 		case "Enqueue":
 			var payload EnqueuePayload
@@ -90,12 +109,14 @@ func HandleWebsocketMessages() {
 			if err == nil {
 				items := getItemsToPlay(payload.ItemIds, payload.PodcastId, payload.TagIds)
 				var player *websocket.Conn
+				playersMutex.RLock()
 				for connection, id := range activePlayers {
 					if msg.Identifier == id {
 						player = connection
 						break
 					}
 				}
+				playersMutex.RUnlock()
 				if player != nil {
 					payloadStr, err := json.Marshal(items)
 					if err == nil {
@@ -111,12 +132,14 @@ func HandleWebsocketMessages() {
 			}
 		case "Register":
 			var player *websocket.Conn
+			playersMutex.RLock()
 			for connection, id := range activePlayers {
 				if msg.Identifier == id {
 					player = connection
 					break
 				}
 			}
+			playersMutex.RUnlock()
 
 			if player == nil {
 				fmt.Println("Player Not Exists")
