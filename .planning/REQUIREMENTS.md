@@ -25,10 +25,10 @@ Requirements for stabilization milestone. Each maps to roadmap phases.
 - [ ] **BUG-01**: Duplicate typo handler `DeletePodcasDeleteOnlyPodcasttEpisodesById` removed or corrected in `controllers/podcast.go`
 - [ ] **BUG-02**: `removeStartingSlash` template function fixed — actually removes leading slash instead of adding one
 - [ ] **BUG-03**: Debug `fmt.Println` in `removeStartingSlash` removed from `main.go`
-- [ ] **BUG-04**: `DownloadMissingEpisodes` concurrency batching fixed — `wg.Wait()` logic corrected so concurrency limit is actually enforced
-- [ ] **BUG-05**: Date parsing expanded to handle ISO 8601, RFC 3339, and other common RSS date formats beyond current 5 hardcoded formats
-- [ ] **BUG-06**: DB init error causes fatal exit instead of continuing with nil DB (fixes `statuse` typo too)
-- [ ] **BUG-07**: WebSocket state maps (`activePlayers`, `allConnections`) protected with `sync.RWMutex` or `sync.Map` to prevent data races
+- [x] **BUG-04**: `DownloadMissingEpisodes` concurrency batching fixed — `wg.Wait()` logic corrected so concurrency limit is actually enforced
+- [x] **BUG-05**: Date parsing expanded to handle ISO 8601, RFC 3339, and other common RSS date formats beyond current 5 hardcoded formats
+- [x] **BUG-06**: DB init error causes fatal exit instead of continuing with nil DB (fixes `statuse` typo too)
+- [x] **BUG-07**: WebSocket state maps (`activePlayers`, `allConnections`) protected with `sync.RWMutex` or `sync.Map` to prevent data races
 
 ### Error Handling
 
@@ -110,18 +110,18 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DEPS-08 | Phase 1 | Complete |
 | DEPS-09 | Phase 1 | Complete |
 | DEPS-10 | Phase 1 | Complete |
-| TEST-01 | Phase 2 | Pending |
-| BUG-01 | Phase 2 | Pending |
-| BUG-02 | Phase 2 | Pending |
-| BUG-03 | Phase 2 | Pending |
-| TEST-02 | Phase 2 | Pending |
-| TEST-03 | Phase 2 | Pending |
-| BUG-04 | Phase 3 | Pending |
-| BUG-05 | Phase 3 | Pending |
-| BUG-06 | Phase 3 | Pending |
-| BUG-07 | Phase 3 | Pending |
-| TEST-04 | Phase 3 | Pending |
-| TEST-05 | Phase 3 | Pending |
+| TEST-01 | Phase 2 | Complete |
+| BUG-01 | Phase 2 | Complete |
+| BUG-02 | Phase 2 | Complete |
+| BUG-03 | Phase 2 | Complete |
+| TEST-02 | Phase 2 | Complete |
+| TEST-03 | Phase 2 | Complete |
+| BUG-04 | Phase 3 | Complete |
+| BUG-05 | Phase 3 | Complete |
+| BUG-06 | Phase 3 | Complete |
+| BUG-07 | Phase 3 | Complete |
+| TEST-04 | Phase 3 | Complete |
+| TEST-05 | Phase 3 | Complete |
 | ERR-01 | Phase 4 | Pending |
 | ERR-02 | Phase 4 | Pending |
 | ERR-03 | Phase 4 | Pending |
