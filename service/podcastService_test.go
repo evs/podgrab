@@ -1,6 +1,8 @@
 package service
 
 import (
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -198,4 +200,39 @@ func TestDeletePodcastEpisodes_ClearsItems(t *testing.T) {
 				item.Title, item.GUID, item.DownloadStatus, db.Deleted)
 		}
 	}
+}
+
+func TestDownloadConcurrencyLimit(t *testing.T) {
+	t.Run("maxConcurrent never exceeds limit", func(t *testing.T) {
+		var maxObserved int64
+		var current int64
+		limit := 3
+		sem := make(chan struct{}, limit)
+		var wg sync.WaitGroup
+		for i := 0; i < 20; i++ {
+			sem <- struct{}{}
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				defer func() { <-sem }()
+				c := atomic.AddInt64(&current, 1)
+				for {
+					m := atomic.LoadInt64(&maxObserved)
+					if c > m {
+						if atomic.CompareAndSwapInt64(&maxObserved, m, c) {
+							break
+						}
+					} else {
+						break
+					}
+				}
+				time.Sleep(5 * time.Millisecond)
+				atomic.AddInt64(&current, -1)
+			}()
+		}
+		wg.Wait()
+		if maxObserved > int64(limit) {
+			t.Fatalf("max concurrent %d > limit %d", maxObserved, limit)
+		}
+	})
 }

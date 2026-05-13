@@ -538,17 +538,16 @@ func DownloadMissingEpisodes() error {
 		return err
 	}
 	var wg sync.WaitGroup
-	for index, item := range *data {
+	sem := make(chan struct{}, setting.MaxDownloadConcurrency)
+	for _, item := range *data {
+		sem <- struct{}{} // acquire
 		wg.Add(1)
 		go func(item db.PodcastItem, setting db.Setting) {
 			defer wg.Done()
+			defer func() { <-sem }() // release
 			url, _ := Download(item.FileURL, item.Title, item.Podcast.Title, GetPodcastPrefix(&item, &setting))
 			SetPodcastItemAsDownloaded(item.ID, url)
 		}(item, *setting)
-
-		if index%setting.MaxDownloadConcurrency == 0 {
-			wg.Wait()
-		}
 	}
 	wg.Wait()
 	db.Unlock(JOB_NAME)
