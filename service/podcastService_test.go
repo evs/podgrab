@@ -87,6 +87,38 @@ func TestGetPodcastById_NotFound(t *testing.T) {
 	}
 }
 
+func TestParseRSSDate(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   string
+		wantErr bool
+		year    int
+	}{
+		{"RFC1123", "Mon, 02 Jan 2006 15:04:05 MST", false, 2006},
+		{"RFC1123Z", "Mon, 02 Jan 2006 15:04:05 -0700", false, 2006},
+		{"RFC3339", "2006-01-02T15:04:05Z", false, 2006},
+		{"RFC3339Nano", "2006-01-02T15:04:05.999999999Z", false, 2006},
+		{"ISO8601", "2006-01-02T15:04:05+00:00", false, 2006},
+		{"ModifiedRFC1123", "Mon, 2 Jan 2006 15:04:05 MST", false, 2006},
+		{"ModifiedRFC1123Z", "Mon, 2 Jan 2006 15:04:05 -0700", false, 2006},
+		{"empty", "", true, 0},
+		{"garbage", "not-a-date", true, 0},
+		{"RFC822", "02 Jan 06 15:04 MST", false, 2006},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := parseRSSDate(tt.input)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("parseRSSDate(%q) error = %v, wantErr %v", tt.input, err, tt.wantErr)
+			}
+			if !tt.wantErr && got.Year() != tt.year {
+				t.Errorf("parseRSSDate(%q) year = %d, want %d", tt.input, got.Year(), tt.year)
+			}
+		})
+	}
+}
+
 func TestGetAllPodcasts_Service(t *testing.T) {
 	setupServiceTestDB(t)
 

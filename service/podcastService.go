@@ -29,6 +29,34 @@ func init() {
 	defer zapper.Sync()
 }
 
+var rssDateFormats = []string{
+	time.RFC1123,
+	time.RFC1123Z,
+	time.RFC3339,
+	time.RFC3339Nano,
+	time.RFC822,
+	time.RFC822Z,
+	time.UnixDate,
+	"Mon, 2 Jan 2006 15:04:05 MST",
+	"Mon, 2 Jan 2006 15:04:05 -0700",
+	"Mon, 02 Jan 2006 15:04:05 -0700",
+	"2006-01-02T15:04:05Z07:00",
+	"2006-01-02 15:04:05",
+}
+
+func parseRSSDate(raw string) (time.Time, error) {
+	s := strings.TrimSpace(raw)
+	if s == "" {
+		return time.Time{}, fmt.Errorf("empty date string")
+	}
+	for _, layout := range rssDateFormats {
+		if t, err := time.Parse(layout, s); err == nil {
+			return t, nil
+		}
+	}
+	return time.Time{}, fmt.Errorf("unable to parse RSS date: %q", raw)
+}
+
 func ParseOpml(content string) (model.OpmlModel, error) {
 	var response model.OpmlModel
 	err := xml.Unmarshal([]byte(content), &response)
@@ -276,31 +304,12 @@ func AddPodcastItems(podcast *db.Podcast, newPodcast bool) error {
 			duration, _ := strconv.Atoi(obj.Duration)
 			toParse := strings.TrimSpace(obj.PubDate)
 
-			pubDate, _ := time.Parse(time.RFC1123Z, toParse)
-			if (pubDate == time.Time{}) {
-				pubDate, _ = time.Parse(time.RFC1123, toParse)
-			}
-			if (pubDate == time.Time{}) {
-				//	RFC1123     = "Mon, 02 Jan 2006 15:04:05 MST"
-				modifiedRFC1123 := "Mon, 2 Jan 2006 15:04:05 MST"
-				pubDate, _ = time.Parse(modifiedRFC1123, toParse)
-			}
-			if (pubDate == time.Time{}) {
-				//	RFC1123Z    = "Mon, 02 Jan 2006 15:04:05 -0700" // RFC1123 with numeric zone
-				modifiedRFC1123Z := "Mon, 2 Jan 2006 15:04:05 -0700"
-				pubDate, _ = time.Parse(modifiedRFC1123Z, toParse)
-			}
-			if (pubDate == time.Time{}) {
-				//	RFC1123Z    = "Mon, 02 Jan 2006 15:04:05 -0700" // RFC1123 with numeric zone
-				modifiedRFC1123Z := "Mon, 02 Jan 2006 15:04:05 -0700"
-				pubDate, _ = time.Parse(modifiedRFC1123Z, toParse)
-			}
+		pubDate, err := parseRSSDate(toParse)
+		if err != nil {
+			Logger.Warnf("BUG-05: failed to parse pubDate %q: %v", obj.PubDate, err)
+		}
 
-			if (pubDate == time.Time{}) {
-				fmt.Printf("Cant format date : %s", obj.PubDate)
-			}
-
-			if latestDate.Before(pubDate) {
+		if latestDate.Before(pubDate) {
 				latestDate = pubDate
 			}
 
