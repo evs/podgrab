@@ -338,6 +338,8 @@ func intiCron() {
 	tripleFreqExpr := fmt.Sprintf("*/%d * * * *", checkFrequency*3)
 	c.AddFunc(tripleFreqExpr, func() { service.UpdateAllFileSizes() })
 	c.AddFunc(freqExpr, func() { service.DownloadMissingImages() })
+	// Run cleanup daily at 04:00 — delete episodes older than 90 days
+	c.AddFunc("0 4 * * *", func() { service.CleanupOldEpisodes() })
 	c.AddFunc("0 0 */2 * *", func() { service.CreateBackup() })
 	c.Start()
 }

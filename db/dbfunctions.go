@@ -433,3 +433,10 @@ func UntagAllByTagId(tagId string) error {
 	tx := DB.Exec("DELETE FROM `podcast_tags` WHERE `tag_id`=?", tagId)
 	return tx.Error
 }
+
+
+func GetOldPodcastItems(cutoff time.Time) (*[]PodcastItem, error) {
+	var items []PodcastItem
+	result := DB.Where("pub_date < ? AND download_status IN (?, ?, ?)", cutoff, NotDownloaded, Downloading, Downloaded).Find(&items)
+	return &items, result.Error
+}

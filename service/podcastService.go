@@ -310,6 +310,12 @@ func AddPodcastItems(podcast *db.Podcast, newPodcast bool) error {
 			Logger.Warnf("BUG-05: failed to parse pubDate %q: %v", obj.PubDate, err)
 		}
 
+		// Skip episodes older than 90 days
+		if !pubDate.IsZero() && pubDate.Before(time.Now().AddDate(0, 0, -90)) {
+			Logger.Debugw("Skipping old episode", "podcast", podcast.Title, "episode", obj.Title, "pubDate", pubDate)
+			continue
+		}
+
 		if latestDate.Before(pubDate) {
 				latestDate = pubDate
 			}
