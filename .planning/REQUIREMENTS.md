@@ -32,11 +32,11 @@ Requirements for stabilization milestone. Each maps to roadmap phases.
 
 ### Error Handling
 
-- [ ] **ERR-01**: `fmt.Println`/`log.Println` error logging replaced with structured `zap.SugaredLogger` calls throughout codebase
-- [ ] **ERR-02**: Errors from service/db calls propagated to HTTP handler layer instead of silently ignored
-- [ ] **ERR-03**: HTTP handlers return appropriate status codes (4xx/5xx) when errors occur instead of empty or wrong responses
-- [ ] **ERR-04**: `checkError` panic-on-error pattern in `service/fileService.go` replaced with proper error return
-- [ ] **ERR-05**: Consistent error handling pattern established and documented for future development
+- [x] **ERR-01**: `fmt.Println`/`log.Println` error logging replaced with structured `zap.SugaredLogger` calls throughout codebase
+- [x] **ERR-02**: Errors from service/db calls propagated to HTTP handler layer instead of silently ignored
+- [x] **ERR-03**: HTTP handlers return appropriate status codes (4xx/5xx) when errors occur instead of empty or wrong responses
+- [x] **ERR-04**: `checkError` panic-on-error pattern in `service/fileService.go` replaced with proper error return
+- [x] **ERR-05**: Consistent error handling pattern established and documented for future development
 
 ### Test Coverage
 
@@ -122,11 +122,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BUG-07 | Phase 3 | Complete |
 | TEST-04 | Phase 3 | Complete |
 | TEST-05 | Phase 3 | Complete |
-| ERR-01 | Phase 4 | Pending |
-| ERR-02 | Phase 4 | Pending |
-| ERR-03 | Phase 4 | Pending |
-| ERR-04 | Phase 4 | Pending |
-| ERR-05 | Phase 4 | Pending |
+| ERR-01 | Phase 4 | Complete |
+| ERR-02 | Phase 4 | Complete |
+| ERR-03 | Phase 4 | Complete |
+| ERR-04 | Phase 4 | Complete |
+| ERR-05 | Phase 4 | Complete |
 
 **Coverage:**
 - v1 requirements: 27 total

@@ -7,7 +7,7 @@ Stabilize the existing Go podcast manager: upgrade the dependency foundation, fi
 ## Phases
 
 **Phase Numbering:**
-- Integer phases (1, 2, 3): Planned milestone work
+- Integer phases (1, 2, 3, 4): Planned milestone work
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
 Decimal phases appear between their surrounding integers in numeric order.
@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Dependency Upgrades** - Upgrade Go to 1.24+, replace abandoned libs, update Docker
 - [x] **Phase 2: Test Framework & Code Quality** - Set up test harness, fix trivial code bugs
 - [x] **Phase 3: Correctness & Concurrency Fixes** - Fix download batching, date parsing, DB init, WebSocket races
-- [ ] **Phase 4: Error Handling Modernization** - Structured logging, error propagation, remove panics
+- [x] **Phase 4: Error Handling Modernization** - Structured logging, error propagation, remove panics
 
 ## Phase Details
 
@@ -30,7 +30,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Docker container builds and runs with updated Dockerfile and docker-compose.yml
   4. PodcastIndex API calls authenticate via environment variables (`PODCASTINDEX_KEY`, `PODCASTINDEX_SECRET`), not hardcoded credentials
   5. No deprecated `io/ioutil` calls remain in the codebase
-**Plans**: 4 plans
+**Plans**: 4 plans (all complete)
 - [x] 01-01-PLAN.md — Go 1.24 upgrade + ioutil replacement
 - [x] 01-02-PLAN.md — Remove jwt-go + swap abandoned libraries (uuid, cron, websocket)
 - [x] 01-03-PLAN.md — Upgrade Gin + remaining deps + GORM v1.26 migration
@@ -73,42 +73,13 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Depends on**: Phase 3
 **Requirements**: ERR-01, ERR-02, ERR-03, ERR-04, ERR-05
 **Success Criteria** (what must be TRUE):
-  1. All error output uses structured zap logging instead of `fmt.Println`/`log.Println`
-  2. Service/DB errors are returned to HTTP handlers instead of silently ignored
-  3. HTTP handlers return proper 4xx/5xx status codes on errors instead of empty or wrong responses
-  4. No panic-on-error patterns remain in `service/fileService.go`
-  5. Error handling conventions documented for future development
-**Plans**: Not yet plannede)
-- [x] 02-01-PLAN.md — Test harness setup (db_test.go, service_test.go, main_test.go)
-- [x] 02-02-PLAN.md — Bug fix: remove typo handler
-- [x] 02-03-PLAN.md — Bug fix: fix removeStartingSlash + remove debug print
-- [x] 02-04-PLAN.md — DB + Service layer CRUD tests
-
-### Phase 3: Correctness & Concurrency Fixes
-**Goal**: Download scheduling works reliably, date parsing handles real RSS feeds, crashes are caught early
-**Mode**: mvp
-**Depends on**: Phase 2
-**Requirements**: BUG-04, BUG-05, BUG-06, BUG-07, TEST-04, TEST-05
-**Success Criteria** (what must be TRUE):
-  1. Download concurrency limit is actually enforced — only N episodes download in parallel
-  2. RSS date parsing handles ISO 8601, RFC 3339, and common podcast date formats
-  3. App exits with fatal error if database initialization fails (no silent nil DB)
-  4. WebSocket connections don't cause data races under concurrent access
-  5. Download concurrency and date parsing have passing verification tests
-**Plans**: 4 (01-01 through 01-04)
-
-### Phase 4: Error Handling Modernization
-**Goal**: Errors are visible, structured, and properly surfaced instead of silently swallowed
-**Mode**: mvp
-**Depends on**: Phase 3
-**Requirements**: ERR-01, ERR-02, ERR-03, ERR-04, ERR-05
-**Success Criteria** (what must be TRUE):
-  1. All error output uses structured zap logging instead of `fmt.Println`/`log.Println`
-  2. Service/DB errors are returned to HTTP handlers instead of silently ignored
-  3. HTTP handlers return proper 4xx/5xx status codes on errors instead of empty or wrong responses
-  4. No panic-on-error patterns remain in `service/fileService.go`
-  5. Error handling conventions documented for future development
-**Plans**: 4 (01-01 through 01-04)
+  1. [x] All error output uses structured zap logging instead of `fmt.Println`/`log.Println`
+  2. [x] Service/DB errors are returned to HTTP handlers instead of silently ignored
+  3. [x] HTTP handlers return proper 4xx/5xx status codes on errors instead of empty or wrong responses
+  4. [x] No panic-on-error patterns remain in `service/fileService.go`
+  5. [x] Error handling conventions documented for future development
+**Plans**: 1 plan (complete)
+- [x] 04-PLAN.md — Replace fmt.Println with structured zap logging, propagate errors, fix HTTP status codes, remove checkError panic
 
 ## Progress
 
@@ -118,6 +89,8 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Dependency Upgrades | 4/4 | ✓ Complete | 2026-05-12 |
-| 2. Test Framework & Code Quality | 0/? | Not started | - |
-| 3. Correctness & Concurrency Fixes | 0/? | Not started | - |
-| 4. Error Handling Modernization | 0/? | Not started | - |
+| 2. Test Framework & Code Quality | 4/4 | ✓ Complete | 2026-05-12 |
+| 3. Correctness & Concurrency Fixes | 1/1 | ✓ Complete | 2026-05-13 |
+| 4. Error Handling Modernization | 1/1 | ✓ Complete | 2026-05-13 |
+
+**Milestone v1.26: 100% COMPLETE**
