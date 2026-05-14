@@ -33,6 +33,7 @@ type SettingModel struct {
 	BaseUrl                       string `form:"baseUrl" json:"baseUrl" query:"baseUrl"`
 	MaxDownloadConcurrency        int    `form:"maxDownloadConcurrency" json:"maxDownloadConcurrency" query:"maxDownloadConcurrency"`
 	UserAgent                     string `form:"userAgent" json:"userAgent" query:"userAgent"`
+	MaxEpisodes                   int    `form:"maxEpisodes" json:"maxEpisodes" query:"maxEpisodes"`
 }
 
 var searchOptions = map[string]string{

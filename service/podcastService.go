@@ -367,6 +367,13 @@ func AddPodcastItems(podcast *db.Podcast, newPodcast bool) error {
 	if (latestDate != time.Time{}) {
 		db.UpdateLastEpisodeDateForPodcast(podcast.ID, latestDate)
 	}
+
+	if len(itemsAdded) > 0 {
+		if enforceErr := EnforcePodcastEpisodeLimit(podcast.ID); enforceErr != nil {
+			Logger.Errorw("Failed to enforce episode limit", "podcastId", podcast.ID, zap.Error(enforceErr))
+		}
+	}
+
 	//go updateSizeFromUrl(itemsAdded)
 	return err
 }
@@ -604,6 +611,40 @@ func DeleteEpisodeFile(podcastItemId string) error {
 
 	return SetPodcastItemAsNotDownloaded(podcastItem.ID, db.Deleted)
 }
+
+func EnforcePodcastEpisodeLimit(podcastID string) error {
+	setting := db.GetOrCreateSetting()
+	maxEpisodes := setting.MaxEpisodes
+	if maxEpisodes <= 0 {
+		return nil
+	}
+
+	count, err := db.CountDownloadedEpisodesByPodcastId(podcastID)
+	if err != nil {
+		Logger.Errorw("Failed to count downloaded episodes", "podcastId", podcastID, zap.Error(err))
+		return err
+	}
+
+	if int(count) <= maxEpisodes {
+		return nil
+	}
+
+	excess := int(count) - maxEpisodes
+	oldest, err := db.GetOldestDownloadedEpisodesByPodcastId(podcastID, excess)
+	if err != nil {
+		Logger.Errorw("Failed to fetch oldest episodes for pruning", "podcastId", podcastID, zap.Error(err))
+		return err
+	}
+
+	for _, item := range oldest {
+		if err := DeleteEpisodeFile(item.ID); err != nil {
+			Logger.Warnw("Failed to prune episode", "itemId", item.ID, "title", item.Title, zap.Error(err))
+		}
+	}
+
+	return nil
+}
+
 func DownloadSingleEpisode(podcastItemId string) error {
 	var podcastItem db.PodcastItem
 	err := db.GetPodcastItemById(podcastItemId, &podcastItem)
@@ -777,7 +818,7 @@ func GetSearchFromPodcastIndex(pod *podcastindex.Podcast) *model.CommonSearchRes
 
 func UpdateSettings(downloadOnAdd bool, initialDownloadCount int, autoDownload bool,
 	appendDateToFileName bool, appendEpisodeNumberToFileName bool, darkMode bool, downloadEpisodeImages bool,
-	generateNFOFile bool, dontDownloadDeletedFromDisk bool, baseUrl string, maxDownloadConcurrency int, userAgent string) error {
+	generateNFOFile bool, dontDownloadDeletedFromDisk bool, baseUrl string, maxDownloadConcurrency int, userAgent string, maxEpisodes int) error {
 	setting := db.GetOrCreateSetting()
 
 	setting.AutoDownload = autoDownload
@@ -792,6 +833,7 @@ func UpdateSettings(downloadOnAdd bool, initialDownloadCount int, autoDownload b
 	setting.BaseUrl = baseUrl
 	setting.MaxDownloadConcurrency = maxDownloadConcurrency
 	setting.UserAgent = userAgent
+	setting.MaxEpisodes = maxEpisodes
 
 	return db.UpdateSettings(setting)
 }

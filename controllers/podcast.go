@@ -260,15 +260,32 @@ func GetPodcastItemImageById(c *gin.Context) {
 
 	if c.ShouldBindUri(&searchByIdQuery) == nil {
 
-		var podcast db.PodcastItem
+		var podcastItem db.PodcastItem
 
-		err := db.GetPodcastItemById(searchByIdQuery.Id, &podcast)
+		err := db.GetPodcastItemById(searchByIdQuery.Id, &podcastItem)
 		if err == nil {
-			if _, err = os.Stat(podcast.LocalImage); os.IsNotExist(err) {
-				c.Redirect(302, podcast.Image)
-			} else {
-				c.File(podcast.LocalImage)
+			// Try local image first
+			if podcastItem.LocalImage != "" {
+				if _, statErr := os.Stat(podcastItem.LocalImage); statErr == nil {
+					c.File(podcastItem.LocalImage)
+					return
+				}
 			}
+
+			// Try episode-level image URL
+			if podcastItem.Image != "" {
+				c.Redirect(302, podcastItem.Image)
+				return
+			}
+
+			// Fallback to parent podcast cover image
+			if podcastItem.Podcast.Image != "" {
+				c.Redirect(302, podcastItem.Podcast.Image)
+				return
+			}
+
+			// No image available at any level
+			c.Redirect(302, "/webassets/blank.png")
 		}
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
@@ -654,7 +671,7 @@ func UpdateSetting(c *gin.Context) {
 		err = service.UpdateSettings(model.DownloadOnAdd, model.InitialDownloadCount,
 			model.AutoDownload, model.AppendDateToFileName, model.AppendEpisodeNumberToFileName,
 			model.DarkMode, model.DownloadEpisodeImages, model.GenerateNFOFile, model.DontDownloadDeletedFromDisk, model.BaseUrl,
-			model.MaxDownloadConcurrency, model.UserAgent,
+			model.MaxDownloadConcurrency, model.UserAgent, model.MaxEpisodes,
 		)
 		if err == nil {
 			c.JSON(200, gin.H{"message": "Success"})

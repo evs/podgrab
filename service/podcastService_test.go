@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -199,6 +200,159 @@ func TestDeletePodcastEpisodes_ClearsItems(t *testing.T) {
 			t.Errorf("item %q (GUID=%q) has DownloadStatus=%d, want Deleted(%d)",
 				item.Title, item.GUID, item.DownloadStatus, db.Deleted)
 		}
+	}
+}
+
+func TestEnforcePodcastEpisodeLimit_NoLimit(t *testing.T) {
+	gdb := setupServiceTestDB(t)
+
+	podcast := db.Podcast{
+		Title: "Limit Test No Limit",
+		URL:   "https://example.com/limit-nolimit.xml",
+	}
+	err := db.CreatePodcast(&podcast)
+	if err != nil {
+		t.Fatalf("CreatePodcast: %v", err)
+	}
+
+	for i := 0; i < 5; i++ {
+		item := db.PodcastItem{
+			PodcastID:      podcast.ID,
+			Title:          fmt.Sprintf("Ep %d", i+1),
+			GUID:           fmt.Sprintf("limit-nolimit-guid-%d", i),
+			PubDate:        time.Now().Add(-time.Duration(5-i) * 24 * time.Hour),
+			DownloadStatus: db.Downloaded,
+			DownloadPath:   fmt.Sprintf("/tmp/limit-test-nolimit/ep%d.mp3", i),
+		}
+		gdb.Create(&item)
+	}
+
+	setting := db.GetOrCreateSetting()
+	setting.MaxEpisodes = 0
+	db.UpdateSettings(setting)
+
+	err = EnforcePodcastEpisodeLimit(podcast.ID)
+	if err != nil {
+		t.Fatalf("EnforcePodcastEpisodeLimit: %v", err)
+	}
+
+	var items []db.PodcastItem
+	db.GetAllPodcastItemsByPodcastId(podcast.ID, &items)
+	downloaded := 0
+	for _, item := range items {
+		if item.DownloadStatus == db.Downloaded {
+			downloaded++
+		}
+	}
+	if downloaded != 5 {
+		t.Errorf("with MaxEpisodes=0 (unlimited), got %d downloaded, want 5", downloaded)
+	}
+}
+
+func TestEnforcePodcastEpisodeLimit_PruneOldest(t *testing.T) {
+	gdb := setupServiceTestDB(t)
+
+	podcast := db.Podcast{
+		Title: "Limit Test Prune",
+		URL:   "https://example.com/limit-prune.xml",
+	}
+	err := db.CreatePodcast(&podcast)
+	if err != nil {
+		t.Fatalf("CreatePodcast: %v", err)
+	}
+
+	baseTime := time.Now().Add(-5 * 24 * time.Hour)
+	for i := 0; i < 5; i++ {
+		item := db.PodcastItem{
+			PodcastID:      podcast.ID,
+			Title:          fmt.Sprintf("Ep %d", i+1),
+			GUID:           fmt.Sprintf("limit-prune-guid-%d", i),
+			PubDate:        baseTime.Add(time.Duration(i) * 24 * time.Hour),
+			DownloadStatus: db.Downloaded,
+			DownloadPath:   fmt.Sprintf("/tmp/limit-test-prune/ep%d.mp3", i),
+		}
+		gdb.Create(&item)
+	}
+
+	setting := db.GetOrCreateSetting()
+	setting.MaxEpisodes = 3
+	db.UpdateSettings(setting)
+
+	err = EnforcePodcastEpisodeLimit(podcast.ID)
+	if err != nil {
+		t.Fatalf("EnforcePodcastEpisodeLimit: %v", err)
+	}
+
+	var items []db.PodcastItem
+	db.GetAllPodcastItemsByPodcastId(podcast.ID, &items)
+	downloaded := 0
+	deleted := 0
+	for _, item := range items {
+		if item.DownloadStatus == db.Downloaded {
+			downloaded++
+		}
+		if item.DownloadStatus == db.Deleted {
+			deleted++
+		}
+	}
+
+	if downloaded != 3 {
+		t.Errorf("with MaxEpisodes=3, got %d downloaded episodes, want 3", downloaded)
+	}
+	if deleted != 2 {
+		t.Errorf("with MaxEpisodes=3, got %d deleted episodes, want 2", deleted)
+	}
+
+	var remaining []db.PodcastItem
+	gdb.Where("podcast_id = ? AND download_status = ?", podcast.ID, db.Downloaded).Order("pub_date desc").Find(&remaining)
+	if len(remaining) > 0 && (remaining[0].Title == "Ep 1" || remaining[0].Title == "Ep 2") {
+		t.Errorf("oldest episodes should have been pruned, but found %q as remaining", remaining[0].Title)
+	}
+}
+
+func TestEnforcePodcastEpisodeLimit_UnderLimit(t *testing.T) {
+	gdb := setupServiceTestDB(t)
+
+	podcast := db.Podcast{
+		Title: "Limit Test Under",
+		URL:   "https://example.com/limit-under.xml",
+	}
+	err := db.CreatePodcast(&podcast)
+	if err != nil {
+		t.Fatalf("CreatePodcast: %v", err)
+	}
+
+	for i := 0; i < 2; i++ {
+		item := db.PodcastItem{
+			PodcastID:      podcast.ID,
+			Title:          fmt.Sprintf("Ep %d", i+1),
+			GUID:           fmt.Sprintf("limit-under-guid-%d", i),
+			PubDate:        time.Now().Add(-time.Duration(2-i) * 24 * time.Hour),
+			DownloadStatus: db.Downloaded,
+			DownloadPath:   fmt.Sprintf("/tmp/limit-test-under/ep%d.mp3", i),
+		}
+		gdb.Create(&item)
+	}
+
+	setting := db.GetOrCreateSetting()
+	setting.MaxEpisodes = 5
+	db.UpdateSettings(setting)
+
+	err = EnforcePodcastEpisodeLimit(podcast.ID)
+	if err != nil {
+		t.Fatalf("EnforcePodcastEpisodeLimit: %v", err)
+	}
+
+	var items []db.PodcastItem
+	db.GetAllPodcastItemsByPodcastId(podcast.ID, &items)
+	downloaded := 0
+	for _, item := range items {
+		if item.DownloadStatus == db.Downloaded {
+			downloaded++
+		}
+	}
+	if downloaded != 2 {
+		t.Errorf("with MaxEpisodes=5 and 2 episodes, got %d downloaded, want 2 (no pruning)", downloaded)
 	}
 }
 

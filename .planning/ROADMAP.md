@@ -84,7 +84,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -92,5 +92,22 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 2. Test Framework & Code Quality | 4/4 | ✓ Complete | 2026-05-12 |
 | 3. Correctness & Concurrency Fixes | 1/1 | ✓ Complete | 2026-05-13 |
 | 4. Error Handling Modernization | 1/1 | ✓ Complete | 2026-05-13 |
+| 6. Episode Image & Download Limits | 3/3 | ✓ Complete | 2026-05-14 |
 
-**Milestone v1.26: 100% COMPLETE**
+### Phase 6: Episode Image & Download Limits
+**Goal**: Episode list shows podcast cover when episode has no image; per-podcast episode count limits with pruning
+**Mode**: mvp
+**Depends on**: Phase 4
+**Requirements**: DL-05, EM-01, EM-02
+**Success Criteria** (what must be TRUE):
+  1. [x] Episode list falls back to podcast-level image when episode has no individual image
+  2. [x] `MaxEpisodes` column added to `Setting` (global default) and `Podcast` (per-podcast override) models
+  3. [x] Settings page exposes numeric input for global max episodes (0=keep all)
+  4. [x] `EnforcePodcastEpisodeLimit` prunes oldest downloaded episodes when limit exceeded
+  5. [x] Tests pass for episode limit enforcement
+**Plans**: 3 plans (all complete)
+- [x] 06-00-PLAN.md — Episode image fallback to parent podcast cover
+- [x] 06-01-PLAN.md — MaxEpisodes model fields + settings UI
+- [x] 06-02-PLAN.md — EnforcePodcastEpisodeLimit helper + pruning wired to AddPodcastItems
+
+**Milestone v1.27: 100% COMPLETE**
