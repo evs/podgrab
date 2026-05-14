@@ -367,6 +367,13 @@ func AddPodcastItems(podcast *db.Podcast, newPodcast bool) error {
 	if (latestDate != time.Time{}) {
 		db.UpdateLastEpisodeDateForPodcast(podcast.ID, latestDate)
 	}
+
+	if len(itemsAdded) > 0 {
+		if enforceErr := EnforcePodcastEpisodeLimit(podcast.ID); enforceErr != nil {
+			Logger.Errorw("Failed to enforce episode limit", "podcastId", podcast.ID, zap.Error(enforceErr))
+		}
+	}
+
 	//go updateSizeFromUrl(itemsAdded)
 	return err
 }
