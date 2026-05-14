@@ -112,6 +112,10 @@
             <span class="label-body">The <code>User-Agent</code> header used when downloading podcasts</span>
             <input type="text" class="u-full-width" name="userAgent" v-model="userAgent">
         </label>
+        <label for="maxEpisodes" style="display: inline-block;" >
+            <span class="label-body">Maximum episodes to keep per podcast (0 = keep all)</span>
+            <input type="number" name="maxEpisodes" v-model.number="maxEpisodes" min="0">
+        </label>
       
         <input type="submit" value="Save" class="button">
     </form>
@@ -191,6 +195,7 @@ var app = new Vue({
             baseUrl:self.baseUrl,
             maxDownloadConcurrency:self.maxDownloadConcurrency,
             userAgent:self.userAgent,
+            maxEpisodes:self.maxEpisodes,
         })
         .then(function(response){
             Vue.toasted.show('Settings saved successfully.' ,{
@@ -237,6 +242,7 @@ var app = new Vue({
     baseUrl: {{ .setting.BaseUrl }},
     maxDownloadConcurrency:{{ .setting.MaxDownloadConcurrency }},
     userAgent:{{ .setting.UserAgent}},
+    maxEpisodes:{{ .setting.MaxEpisodes }},
   },
 
 })
