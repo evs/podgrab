@@ -89,7 +89,7 @@ type Setting struct {
 	BaseUrl                       string
 	MaxDownloadConcurrency        int `gorm:"default:5"`
 	UserAgent                     string
-	MaxEpisodes                   int `gorm:"default:0"` // 0 = unlimited episodes per podcast
+	MaxEpisodes                   int `gorm:"default:0"`
 }
 type Migration struct {
 	Base

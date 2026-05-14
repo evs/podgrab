@@ -440,3 +440,18 @@ func GetOldPodcastItems(cutoff time.Time) (*[]PodcastItem, error) {
 	result := DB.Where("pub_date < ? AND download_status IN (?, ?, ?)", cutoff, NotDownloaded, Downloading, Downloaded).Find(&items)
 	return &items, result.Error
 }
+
+func CountDownloadedEpisodesByPodcastId(podcastId string) (int64, error) {
+	var count int64
+	result := DB.Model(&PodcastItem{}).Where("podcast_id = ? AND download_status = ?", podcastId, Downloaded).Count(&count)
+	return count, result.Error
+}
+
+func GetOldestDownloadedEpisodesByPodcastId(podcastId string, limit int) ([]PodcastItem, error) {
+	var items []PodcastItem
+	result := DB.Where("podcast_id = ? AND download_status = ?", podcastId, Downloaded).
+		Order("pub_date asc").
+		Limit(limit).
+		Find(&items)
+	return items, result.Error
+}
