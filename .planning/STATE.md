@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.26
-milestone_name: milestone
-status: complete
-stopped_at: Completed 04-PLAN.md
-last_updated: "2026-05-13T03:10:00Z"
-last_activity: 2026-05-13
+milestone: v1.27
+milestone_name: Bugfix + Feature
+status: active
+stopped_at: Completed 06-02-PLAN.md
+last_updated: "2026-05-14T00:00:00Z"
+last_activity: 2026-05-14
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 10
-  completed_plans: 10
+  total_phases: 6
+  completed_phases: 6
+  total_plans: 13
+  completed_plans: 13
   percent: 100
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-12)
 
 **Core value:** Podcast episodes are automatically downloaded and available — that download-and-organize loop must never break
-**Current focus:** All 4 phases complete — stabilization milestone v1.26 finished
+**Current focus:** All 6 phases complete — milestone v1.27 finished (Episode image fallback + Per-podcast download limits)
 
 ## Current Position
 
-Phase: 4 of 4 (Error Handling Modernization) ✓ COMPLETE
-Plan: 1 of 1 in current phase
+Phase: 6 of 6 (Episode Image & Download Limits) ✓ COMPLETE
+Plan: 3 of 3 in current phase
 Status: Milestone complete
-Last activity: 2026-05-13 — Phase 4 executed and verified (Wave 1 service layer, Wave 2 controller layer, Wave 3 verification)
+Last activity: 2026-05-14 — Phase 6 executed and verified (Wave 1: 3 parallel plans for image fallback + download limits)
 
 Progress: [████████████] 100%
 
@@ -65,6 +65,9 @@ Progress: [████████████] 100%
 | Phase 02-04 | 8min | 3 tasks | 5 files |
 | Phase 03 | 10min | 6 tasks | 6 files |
 | Phase 04 | 24min | 12 tasks | 6 files |
+| Phase 06-00 episode-image | 12min | 2 tasks | 1 file |
+| Phase 06-01 dl-limit-cfg | 13min | 5 tasks | 4 files |
+| Phase 06-02 dl-limit-enforce | 14min | 5 tasks | 3 files |
 
 ## Accumulated Context
 
